@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный тренажер DTB B2: Устная часть</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Beige -->
+    <!-- Application Structure Plan: An interactive exam trainer SPA with two main sections toggled by navigation buttons, one for "Teil 2" (dialogue starters) and one for "Teil 3" (problem-solving scenarios). Users can generate random tasks via a button click within each section. This structure simulates the exam experience better than a static list and focuses the user on one task type at a time, enhancing usability and learning effectiveness. -->
+    <!-- Visualization & Content Choices: Teil 2: Goal is to practice spontaneous dialogue. Presented as interactive "cards" with a button to get a new random card and a toggle to show/hide the Russian translation. This encourages active recall. Implemented with JS/HTML/Tailwind. Teil 3: Goal is to practice structured problem-solving. Presented as larger scenario cards with clearly defined Situation, Aufgabe, and Stichpunkte. A button generates a new scenario. The translation is in a collapsible section to prioritize the German text. Implemented with JS/HTML/Tailwind. No charts are needed or used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .nav-btn {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Тренажер для устного экзамена DTB B2</h1>
+            <p class="text-slate-600 mt-2">Практикуйте диалоги и решение проблем в интерактивном режиме.</p>
+        </header>
+
+        <nav class="flex justify-center gap-4 mb-8">
+            <button id="nav-teil2" class="nav-btn font-semibold py-2 px-6 rounded-lg transition-colors duration-300 active">Часть 2</button>
+            <button id="nav-teil3" class="nav-btn font-semibold py-2 px-6 rounded-lg transition-colors duration-300">Часть 3</button>
+        </nav>
+
+        <main>
+            <section id="teil2-section">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                    <h2 class="text-2xl font-bold mb-2 text-blue-700">Teil 2: Mit Kolleginnen und Kollegen sprechen</h2>
+                    <p class="text-slate-600 mb-6">В этой части вам нужно инициировать короткий диалог с коллегой на повседневную рабочую тему. Нажмите на кнопку ниже, чтобы получить карточку с заданием. Попробуйте начать разговор, используя предложенную фразу.</p>
+                    <div class="text-center mb-6">
+                        <button id="new-task-teil2" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-transform duration-200 transform hover:scale-105">Новое задание</button>
+                    </div>
+                    <div id="task-container-teil2" class="min-h-[200px] flex items-center justify-center bg-slate-100 rounded-lg p-4">
+                        <p class="text-slate-500">Нажмите на кнопку, чтобы начать.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="teil3-section" class="hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                    <h2 class="text-2xl font-bold mb-2 text-green-700">Teil 3: Lösungswege diskutieren</h2>
+                    <p class="text-slate-600 mb-6">В этой части вам и вашему партнеру дается описание проблемной ситуации. Ваша задача — совместно обсудить ее и найти пути решения, опираясь на предложенные пункты. Нажмите на кнопку, чтобы получить новое задание.</p>
+                     <div class="text-center mb-6">
+                        <button id="new-task-teil3" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-transform duration-200 transform hover:scale-105">Новый сценарий</button>
+                    </div>
+                    <div id="task-container-teil3" class="min-h-[300px] flex items-center justify-center bg-slate-100 rounded-lg p-4">
+                         <p class="text-slate-500">Нажмите на кнопку, чтобы начать.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 text-slate-500 text-sm">
+            <p>Удачи на экзамене! Viel Erfolg bei der Prüfung!</p>
+        </footer>
+    </div>
+
+    <script>
+        const teil2Tasks = [
+            {
+                de: "Ich überlege, öfter im Homeoffice zu arbeiten. Das spart so viel Zeit für den Arbeitsweg. Wie siehst du das, arbeitest du lieber im Büro oder zu Hause?",
+                ru: "Я подумываю о том, чтобы чаще работать из дома. Это экономит столько времени на дорогу. А ты как считаешь, ты предпочитаешь работать в офисе или дома?"
+            },
+            {
+                de: "Unsere Firma bietet jetzt neue Weiterbildungskurse an, zum Beispiel im Projektmanagement. Ich würde gerne einen machen. Hast du schon mal eine Weiterbildung gemacht oder planst du eine?",
+                ru: "Наша фирма теперь предлагает новые курсы повышения квалификации, например, по управлению проектами. Я бы хотел пройти один из них. Ты когда-нибудь проходил повышение квалификации или планируешь?"
+            },
+            {
+                de: "In letzter Zeit fühle ich mich nach der Arbeit oft total gestresst. Hast du vielleicht einen Tipp, was man gut zum Ausgleich machen kann?",
+                ru: "В последнее время я часто чувствую сильный стресс после работы. У тебя, может быть, есть совет, что можно делать для разрядки?"
+            }
+        ];
+
+        const teil3Tasks = [
+            {
+                situation: "Sie arbeiten in einem Hotel. Mehrere Gäste haben sich beschwert, dass das Online-Buchungssystem auf der Webseite oft nicht funktioniert und Zimmer als 'verfügbar' anzeigt, die bereits belegt sind.",
+                aufgabe: "Überlegen Sie zusammen mit Ihrer Gesprächspartnerin oder Ihrem Gesprächspartner, wie Sie in dieser Situation angemessen reagieren.",
+                stichpunkte: ["Problem: was sofort tun?", "Gäste: wie kontaktieren? was anbieten?", "IT-Abteilung: wie informieren? was fordern?", "langfristig: System wechseln? Alternativen?"],
+                translation: {
+                    situation: "Вы работаете в отеле. Несколько гостей пожаловались, что система онлайн-бронирования на сайте часто не работает и показывает номера как 'свободные', хотя они уже заняты.",
+                    aufgabe: "Обсудите вместе с вашим партнером по диалогу, как адекватно отреагировать в этой ситуации.",
+                    stichpunkte_title: "Эти ключевые пункты помогут вам:",
+                }
+            },
+            {
+                situation: "Sie arbeiten in einem Büro. Neben Ihrem Bürogebäude hat eine große Baustelle eröffnet. Viele Mitarbeiter beschweren sich über den ständigen Lärm, der die Konzentration stört.",
+                aufgabe: "Überlegen Sie zusammen mit Ihrer Gesprächspartnerin oder Ihrem Gesprächspartner, wie Sie auf dieses Problem reagieren können.",
+                stichpunkte: ["Mitarbeiter: wie unterstützen?", "kurzfristige Lösungen: Kopfhörer? Homeoffice?", "Bauleitung: Kontakt aufnehmen? was besprechen?", "langfristige Lösungen: Schallschutzfenster?"],
+                translation: {
+                    situation: "Вы работаете в офисе. Рядом с вашим офисным зданием открылась большая стройка. Многие сотрудники жалуются на постоянный шум, который мешает концентрации.",
+                    aufgabe: "Обсудите вместе с вашим партнером по диалогу, как можно отреагировать на эту проблему.",
+                    stichpunkte_title: "Эти ключевые пункты помогут вам:",
+                }
+            },
+            {
+                situation: "Ihre Firma hat neue Regeln für die Nutzung von Firmenwagen eingeführt. Mitarbeiter müssen nun einen Teil der Benzinkosten selbst tragen. Viele Kollegen sind darüber sehr unzufrieden.",
+                aufgabe: "Überlegen Sie zusammen mit Ihrer Gesprächspartnerin oder Ihrem Gesprächspartner, was Sie in dieser Situation tun können.",
+                stichpunkte: ["Meinung der Kollegen: sammeln und strukturieren", "Gespräch mit der Geschäftsführung: wer? wie vorbereiten?", "Argumente: welche vorbringen?", "Kompromissvorschläge: welche Alternativen gibt es?"],
+                translation: {
+                    situation: "Ваша фирма ввела новые правила использования служебных автомобилей. Теперь сотрудники должны сами покрывать часть расходов на бензин. Многие коллеги очень недовольны этим.",
+                    aufgabe: "Обсудите вместе с вашим партнером по диалогу, что вы можете сделать в этой ситуации.",
+                    stichpunkte_title: "Эти ключевые пункты помогут вам:",
+                }
+            }
+        ];
+
+        let currentTeil2Index = -1;
+        let currentTeil3Index = -1;
+        
+        const navTeil2 = document.getElementById('nav-teil2');
+        const navTeil3 = document.getElementById('nav-teil3');
+        const teil2Section = document.getElementById('teil2-section');
+        const teil3Section = document.getElementById('teil3-section');
+        
+        const newTaskTeil2Btn = document.getElementById('new-task-teil2');
+        const newTaskTeil3Btn = document.getElementById('new-task-teil3');
+        const taskContainerTeil2 = document.getElementById('task-container-teil2');
+        const taskContainerTeil3 = document.getElementById('task-container-teil3');
+
+        function switchView(view) {
+            if (view === 'teil2') {
+                teil2Section.classList.remove('hidden');
+                teil3Section.classList.add('hidden');
+                navTeil2.classList.add('active');
+                navTeil3.classList.remove('active');
+            } else {
+                teil2Section.classList.add('hidden');
+                teil3Section.classList.remove('hidden');
+                navTeil2.classList.remove('active');
+                navTeil3.classList.add('active');
+            }
+        }
+
+        navTeil2.addEventListener('click', () => switchView('teil2'));
+        navTeil3.addEventListener('click', () => switchView('teil3'));
+        
+        function getRandomIndex(array, currentIndex) {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * array.length);
+            } while (array.length > 1 && newIndex === currentIndex);
+            return newIndex;
+        }
+
+        newTaskTeil2Btn.addEventListener('click', () => {
+            currentTeil2Index = getRandomIndex(teil2Tasks, currentTeil2Index);
+            const task = teil2Tasks[currentTeil2Index];
+            taskContainerTeil2.innerHTML = `
+                <div class="w-full bg-white border border-blue-200 rounded-lg p-6 text-left animate-fade-in">
+                    <p class="text-lg text-slate-800 mb-4">${task.de}</p>
+                    <button class="text-blue-600 font-semibold text-sm" onclick="toggleTranslation(this, 'translation-teil2')">Показать перевод ▼</button>
+                    <p id="translation-teil2" class="text-slate-600 mt-2 hidden">${task.ru}</p>
+                </div>
+            `;
+        });
+
+        newTaskTeil3Btn.addEventListener('click', () => {
+            currentTeil3Index = getRandomIndex(teil3Tasks, currentTeil3Index);
+            const task = teil3Tasks[currentTeil3Index];
+            const stichpunkteHtml = task.stichpunkte.map(punkt => `<li class="flex items-start"><span class="text-green-500 mr-2 mt-1">&#10003;</span><span>${punkt}</span></li>`).join('');
+            
+            taskContainerTeil3.innerHTML = `
+                <div class="w-full bg-white border border-green-200 rounded-lg p-6 text-left animate-fade-in">
+                    <h3 class="font-bold text-lg mb-2">Situation:</h3>
+                    <p class="mb-4 text-slate-700">${task.situation}</p>
+                    <h3 class="font-bold text-lg mb-2">Aufgabe:</h3>
+                    <p class="mb-4 text-slate-700">${task.aufgabe}</p>
+                    <h3 class="font-bold text-lg mb-2">Stichpunkte:</h3>
+                    <ul class="space-y-2 mb-4 text-slate-700">${stichpunkteHtml}</ul>
+                    <button class="text-green-600 font-semibold text-sm" onclick="toggleTranslation(this, 'translation-teil3')">Показать перевод ▼</button>
+                    <div id="translation-teil3" class="text-slate-600 mt-3 border-t pt-3 hidden">
+                        <h4 class="font-bold">Ситуация:</h4>
+                        <p class="mb-2">${task.translation.situation}</p>
+                        <h4 class="font-bold">Задание:</h4>
+                        <p class="mb-2">${task.translation.aufgabe}</p>
+                        <h4 class="font-bold">${task.translation.stichpunkte_title}</h4>
+                    </div>
+                </div>
+            `;
+        });
+        
+        function toggleTranslation(button, elementId) {
+            const translationElement = document.getElementById(elementId);
+            const isHidden = translationElement.classList.contains('hidden');
+            if (isHidden) {
+                translationElement.classList.remove('hidden');
+                button.textContent = 'Скрыть перевод ▲';
+            } else {
+                translationElement.classList.add('hidden');
+                button.textContent = 'Показать перевод ▼';
+            }
+        }
+
+        // Add a simple fade-in animation
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.5s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>
